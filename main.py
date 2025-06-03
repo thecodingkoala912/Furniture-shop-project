@@ -103,6 +103,25 @@ def read_data_from_files():
     except FileNotFoundError:
         text_output.insert(END, "❌ Error: One of the files is missing (products.csv, sales.csv, group_id.csv)\n")
 
+# Task 2 - Transfer data from files into lists and visualize them
+def show_tables():
+    messagebox.showinfo("Task 2", "Transferring data from files into lists and visualizing them.")
+
+    win = Toplevel(root)
+    win.title("Tables: Products, Sales, Groups")
+    win.geometry("700x800")
+
+    products, sales, group = read_files()
+
+    if products:
+        show_table(win, "Products", list(products[0].keys()), products)
+
+    if sales:
+        show_table(win, "Sales", list(sales[0].keys()), sales)
+
+    if group:
+        show_table(win, "Groups", list(group[0].keys()), group)
+
 # GUI
 root = Tk()
 root.title("Furniture Store Management")
@@ -112,5 +131,5 @@ style = ttk.Style()
 style.configure("TButton", font=("Arial", 12), padding=10)
 
 ttk.Button(root, text="Task 1", width=30, command=read_data_from_files).pack(pady=5)
-
+ttk.Button(root, text="Task 2", width=30, command=show_tables).pack(pady=5)
 root.mainloop()
