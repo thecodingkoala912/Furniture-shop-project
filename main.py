@@ -76,3 +76,41 @@ def build_summarized_data(aggregated, product_dict, group_dict, id_key='product_
         }
         summarized_data.append(row)
     return summarized_data
+
+# 1. Task 1 - Reading data from files (at least 10 lines of data) + added logic for validation
+def read_data_from_files():
+    win = Toplevel(root)
+    win.title("Read and Validate Data")
+
+    text_output = Text(win, height=10, width=70, font=("Consolas", 10))
+    text_output.pack(padx=10, pady=10)
+
+    messagebox.showinfo("Task 1", "Reading data from files (at least 10 lines of data)")
+    text_output.delete("1.0", END)
+
+    try:
+        products, sales, _ = read_files()
+
+        if len(products) < 10 or len(sales) < 10:
+            text_output.insert(END, "❌ Not enough data!\n")
+            if len(products) < 10:
+                text_output.insert(END, f"- 'products.csv' has {len(products)} lines. Needs {10 - len(products)} more.\n")
+            if len(sales) < 10:
+                text_output.insert(END, f"- 'sales.csv' has {len(sales)} lines. Needs {10 - len(sales)} more.\n")
+        else:
+            text_output.insert(END, "✅ Files successfully read! Sufficient data.\n")
+
+    except FileNotFoundError:
+        text_output.insert(END, "❌ Error: One of the files is missing (products.csv, sales.csv, group_id.csv)\n")
+
+# GUI
+root = Tk()
+root.title("Furniture Store Management")
+root.geometry("500x400")  
+
+style = ttk.Style()
+style.configure("TButton", font=("Arial", 12), padding=10)
+
+ttk.Button(root, text="Task 1", width=30, command=read_data_from_files).pack(pady=5)
+
+root.mainloop()
