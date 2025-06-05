@@ -121,6 +121,36 @@ def show_tables():
 
     if group:
         show_table(win, "Groups", list(group[0].keys()), group)
+# Task 3 - Filling a dictionary from the lists with data summarization and visualization.
+
+def show_summarized_table():
+    messagebox.showinfo("Task 3", "Filling a dictionary from the lists with data summarization and visualization.")
+
+    products, sales, groups = read_files()
+    group_dict, product_dict = build_dicts(groups, products)
+    aggregated = create_aggregated_dict()
+
+    for sale in sales:
+        product_id = sale.get('product_id')
+        try:
+            quantity = int(sale.get('quantity', 0))
+            unit_price = float(sale.get('unit_price', 0))
+        except ValueError:
+            continue
+        update_aggregated(aggregated, product_id, quantity, unit_price)
+
+    summarized_data = build_summarized_data(aggregated, product_dict, group_dict, id_key='product_id')
+
+    win = Toplevel(root)
+    win.title("Summarized Revenue Table by Products")
+
+    show_table(
+        parent=win,
+        heading="Summarized Revenue Table by Products",
+        columns=['product_id', 'group', 'name', 'unit_price', 'sales_sum'],
+        rows=summarized_data
+    )
+
 
 # GUI
 root = Tk()
@@ -132,4 +162,6 @@ style.configure("TButton", font=("Arial", 12), padding=10)
 
 ttk.Button(root, text="Task 1", width=30, command=read_data_from_files).pack(pady=5)
 ttk.Button(root, text="Task 2", width=30, command=show_tables).pack(pady=5)
+ttk.Button(root, text="Task 3", width=30, command=show_summarized_table).pack(pady=5)
+
 root.mainloop()
