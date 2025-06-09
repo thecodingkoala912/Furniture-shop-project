@@ -289,6 +289,127 @@ def save_turnover_summary():
     except Exception as e:
         messagebox.showerror("Error", f"Error saving the file: {e}")
 
+# Task 7 - Add data via interface to a Python data structure
+def add_product():
+    messagebox.showinfo("Task 7", "Add data via interface to a Python data structure.")
+    
+    # Load groups
+    GROUPS = {}
+    KEYWORDS_TO_GROUP_ID = {}
+
+    try:
+        with open("group_id.csv", mode="r", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                gid = row["group_id"]
+                gname = row["group"]
+                GROUPS[gid] = gname
+                keyword = gname.lower().rstrip('и')
+                KEYWORDS_TO_GROUP_ID[keyword] = gid
+    except Exception as e:
+        messagebox.showerror("Error", f"Could not load groups: {e}")
+        return
+
+    # Load existing products
+    existing_products = []
+    last_id = 0
+    if os.path.exists("products.csv"):
+        with open("products.csv", mode="r", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                existing_products.append(row)
+                try:
+                    last_id = max(last_id, int(row["product_id"]))
+                except:
+                    continue
+
+    def guess_group_id(name):
+        name = name.lower()
+        for keyword, gid in KEYWORDS_TO_GROUP_ID.items():
+            if keyword in name:
+                return gid
+        return ""
+
+    def next_product_id():
+        return f"{last_id + 1:03d}"
+
+    def is_duplicate(name, group_id):
+        name = name.strip().lower()
+        return any(p["name"].strip().lower() == name and p["group_id"] == group_id for p in existing_products)
+
+    def capitalize_words(text):
+        return ' '.join(word.capitalize() for word in text.strip().split())
+
+    def submit():
+        name = entry_name.get().strip()
+        group_id = entry_group_id.get().strip()
+
+        if not name or not group_id:
+            messagebox.showerror("Error", "Please fill in both name and group.")
+            return
+
+        if not re.match(r"^[а-яА-Я\s\-]+$", name):
+            messagebox.showerror("Error", "Name must be in Cyrillic (letters, spaces, dashes only).")
+            return
+
+        if group_id not in GROUPS:
+            messagebox.showerror("Error", "Invalid Group ID.")
+            return
+
+        name_normalized = name.lower().strip()
+        name_capitalized = capitalize_words(name)
+
+        if is_duplicate(name_normalized, group_id):
+            messagebox.showerror("Error", "This product already exists.")
+            return
+
+        new_product = {
+            "product_id": next_product_id(),
+            "name": name_capitalized,
+            "group_id": group_id
+        }
+
+        try:
+            with open("products.csv", mode="a", newline='', encoding="utf-8") as f:
+                writer = csv.DictWriter(f, fieldnames=["product_id", "name", "group_id"])
+                if f.tell() == 0:
+                    writer.writeheader()
+                writer.writerow(new_product)
+        except Exception as e:
+            messagebox.showerror("Write Error", f"Failed to write: {e}")
+            return
+
+        messagebox.showinfo("Success", f"Product '{name_capitalized}' has been added.")
+        win.destroy()
+
+    def on_name_change(*args):
+        suggested_gid = guess_group_id(name_var.get())
+        if suggested_gid:
+            entry_group_id.delete(0, END)
+            entry_group_id.insert(0, suggested_gid)
+
+    win = Toplevel(root)
+    win.title("New Product")
+    win.geometry("300x200")
+
+    Label(win, text="Add New Product", font=("Arial", 14, "bold")).pack(pady=10)
+
+    frame = Frame(win)
+    frame.pack(pady=5)
+
+    name_var = StringVar()
+    name_var.trace_add("write", on_name_change)
+
+    Label(frame, text="Name:").grid(row=0, column=0, padx=5, pady=5, sticky="e")
+    entry_name = Entry(frame, textvariable=name_var)
+    entry_name.grid(row=0, column=1, padx=5, pady=5)
+
+    Label(frame, text="Group ID:").grid(row=1, column=0, padx=5, pady=5, sticky="e")
+    entry_group_id = Entry(frame)
+    entry_group_id.grid(row=1, column=1, padx=5, pady=5)
+
+    Button(win, text="Add", command=submit).pack(pady=10)
+
 # GUI
 root = Tk()
 root.title("Furniture Store Management")
@@ -303,5 +424,6 @@ ttk.Button(root, text="Task 3", width=30, command=show_summarized_table).pack(pa
 ttk.Button(root, text="Task 4", width=30, command=show_sales_by_date).pack(pady=5)
 ttk.Button(root, text="Task 5", width=30, command=show_sales_over_500).pack(pady=5)
 ttk.Button(root, text="Task 6", width=30, command=save_turnover_summary).pack(pady=5)
+ttk.Button(root, text="Task 7", width=30, command=add_product).pack(pady=5)
 
 root.mainloop()
