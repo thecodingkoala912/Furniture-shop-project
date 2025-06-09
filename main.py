@@ -77,7 +77,7 @@ def build_summarized_data(aggregated, product_dict, group_dict, id_key='product_
         summarized_data.append(row)
     return summarized_data
 
-# 1. Task 1 - Reading data from files (at least 10 lines of data) + added logic for validation
+# Task 1 - Reading data from files (at least 10 lines of data) + added logic for validation
 def read_data_from_files():
     win = Toplevel(root)
     win.title("Read and Validate Data")
@@ -121,8 +121,8 @@ def show_tables():
 
     if group:
         show_table(win, "Groups", list(group[0].keys()), group)
-# Task 3 - Filling a dictionary from the lists with data summarization and visualization.
 
+# Task 3 - Filling a dictionary from the lists with data summarization and visualization.
 def show_summarized_table():
     messagebox.showinfo("Task 3", "Filling a dictionary from the lists with data summarization and visualization.")
 
@@ -150,7 +150,6 @@ def show_summarized_table():
         columns=['product_id', 'group', 'name', 'unit_price', 'sales_sum'],
         rows=summarized_data
     )
-
 
 # GUI
 root = Tk()
