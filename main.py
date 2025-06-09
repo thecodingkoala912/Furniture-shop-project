@@ -151,6 +151,104 @@ def show_summarized_table():
         rows=summarized_data
     )
 
+# Task 4 - Search data from the dictionary and display results
+def show_sales_by_date():
+    messagebox.showinfo("Task 4", "Search data from the lists and display the results.")
+
+    date_input = simpledialog.askstring("Enter Date", "Enter date (YYYY-MM-DD):")
+    if not date_input:
+        return
+
+    try:
+        datetime.strptime(date_input, "%Y-%m-%d")
+    except ValueError:
+        messagebox.showerror("Error", "Please enter a valid date in YYYY-MM-DD format!")
+        return
+
+    products, sales, groups = read_files()
+    group_dict, product_dict = build_dicts(groups, products)
+    aggregated = create_aggregated_dict()
+
+    for sale in sales:
+        if sale.get('date') != date_input:
+            continue
+
+        product_id = sale.get('product_id')
+        try:
+            quantity = int(sale.get('quantity', 0))
+            unit_price = float(sale.get('unit_price', 0))
+        except ValueError:
+            continue
+
+        update_aggregated(aggregated, product_id, quantity, unit_price)
+
+    summarized_data = build_summarized_data(
+        aggregated, product_dict, group_dict, id_key='product_id'
+    )
+
+    if not summarized_data:
+        messagebox.showinfo("No Data", f"No sales on {date_input}.")
+        return
+
+    win = Toplevel(root)
+    win.title(f"Revenue for {date_input}")
+
+    show_table(
+        parent=win,
+        heading=f"Summary revenue table by product for {date_input}",
+        columns=['product_id', 'group', 'name', 'unit_price', 'sales_sum'],
+        rows=summarized_data
+    )
+
+# Task 5 - Transfer data based on a specific criterion into a new list and display it
+def show_sales_over_500():
+    messagebox.showinfo("Task 5", "Transfer data based on a specific criterion into a new list and display it.")
+
+    products, sales, groups = read_files()
+    group_dict, product_dict = build_dicts(groups, products)
+
+    filtered_sales = []
+    for sale in sales:
+        try:
+            quantity = int(sale.get('quantity', 0))
+            unit_price = float(sale.get('unit_price', 0))
+        except (ValueError, TypeError):
+            continue
+
+        sales_sum = quantity * unit_price
+        if sales_sum <= 500:
+            continue
+
+        product_id = sale.get('product_id')
+        date = sale.get('date', '')
+        product = product_dict.get(product_id, {})
+        name = product.get('name', 'Unknown')
+
+        filtered_sales.append({
+            'product_id': product_id,
+            'name': name,
+            'date': date,
+            'unit_price': f"{unit_price:.2f}",
+            'quantity': quantity,
+            'sales_sum': f"{sales_sum:.2f}"
+        })
+
+    if not filtered_sales:
+        messagebox.showinfo("No Results", "No sales over 500 BGN.")
+        return
+
+    filtered_sales.sort(key=lambda x: float(x['sales_sum']), reverse=True)
+
+    win = Toplevel(root)
+    win.title("Sales over 500 BGN")
+
+    show_table(
+        parent=win,
+        heading="Sales with value over 500 BGN",
+        columns=['product_id', 'name', 'date', 'unit_price', 'quantity', 'sales_sum'],
+        rows=filtered_sales
+    )
+
 # GUI
 root = Tk()
 root.title("Furniture Store Management")
@@ -162,5 +260,7 @@ style.configure("TButton", font=("Arial", 12), padding=10)
 ttk.Button(root, text="Task 1", width=30, command=read_data_from_files).pack(pady=5)
 ttk.Button(root, text="Task 2", width=30, command=show_tables).pack(pady=5)
 ttk.Button(root, text="Task 3", width=30, command=show_summarized_table).pack(pady=5)
+ttk.Button(root, text="Task 4", width=30, command=show_sales_by_date).pack(pady=5)
+ttk.Button(root, text="Task 5", width=30, command=show_sales_over_500).pack(pady=5)
 
 root.mainloop()
