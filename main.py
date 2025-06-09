@@ -248,6 +248,46 @@ def show_sales_over_500():
         columns=['product_id', 'name', 'date', 'unit_price', 'quantity', 'sales_sum'],
         rows=filtered_sales
     )
+# Task 6 - Save data from the list to a text file in a suitable format
+def save_turnover_summary():
+    messagebox.showinfo("Task 6", "Save data from the list to a text file in a suitable format.")
+
+    products, sales, groups = read_files()
+
+    group_dict, product_dict = build_dicts(groups, products)
+
+    turnover_by_group = defaultdict(float)
+
+    for sale in sales:
+        product_id = sale.get('product_id')
+        product = product_dict.get(product_id)
+        if not product:
+            continue
+
+        try:
+            quantity = int(sale.get('quantity', 0))
+            unit_price = float(sale.get('unit_price', 0))
+        except ValueError:
+            continue
+
+        group_id = product.get('group_id')
+        group_name = group_dict.get(group_id, "Unknown group")
+        turnover_by_group[group_name] += quantity * unit_price
+
+    total_turnover = sum(turnover_by_group.values())
+
+    try:
+        with open("turnover.txt", "w", encoding="utf-8") as f:
+            f.write(f"{'Group':<25} | {'Turnover (BGN)':>15}\n")
+            f.write("-" * 43 + "\n")
+            for group_name, turnover in sorted(turnover_by_group.items()):
+                f.write(f"{group_name:<25} | {turnover:>15.2f}\n")
+            f.write("-" * 43 + "\n")
+            f.write(f"{'Total':<25} | {total_turnover:>15.2f}\n")
+
+        messagebox.showinfo("Success", "File 'turnover.txt' was saved successfully.")
+    except Exception as e:
+        messagebox.showerror("Error", f"Error saving the file: {e}")
 
 # GUI
 root = Tk()
@@ -262,5 +302,6 @@ ttk.Button(root, text="Task 2", width=30, command=show_tables).pack(pady=5)
 ttk.Button(root, text="Task 3", width=30, command=show_summarized_table).pack(pady=5)
 ttk.Button(root, text="Task 4", width=30, command=show_sales_by_date).pack(pady=5)
 ttk.Button(root, text="Task 5", width=30, command=show_sales_over_500).pack(pady=5)
+ttk.Button(root, text="Task 6", width=30, command=save_turnover_summary).pack(pady=5)
 
 root.mainloop()
